@@ -1,9 +1,11 @@
 import React, { Component } from 'react';
+import axios from 'axios';
 
 import './App.css';
 
 import Header from './Header/Header';
 import Compose from './Compose/Compose';
+import Post from './Post/Post';
 
 class App extends Component {
   constructor() {
@@ -19,23 +21,49 @@ class App extends Component {
   }
   
   componentDidMount() {
-
+axios.get('https://practiceapi.devmountain.com/api/posts').then( results => {
+  console.log(results)
+  this.setState({ posts: results.data });
+});
   }
 
-  updatePost() {
+  updatePost( id, text ) {
+   axios.put(`https://practiceapi.devmountain.com/api/posts?id=${ id }`, { text }).then(results => {
+     this.setState({ posts: results.data});
+   });
   
   }
 
-  deletePost() {
+  deletePost( id ) {
+    console.log(id)
+    axios.delete(`https://practiceapi.devmountain.com/api/posts?id=${ id }`).then( results => {
+      console.log(results)
+      this.setState({ posts: results.data});
+    })
 
   }
+  
+  createPost( text ) {
+axios.post('https://practiceapi.devmountain.com/api/posts',  { text }).then(results => {
+  this.setState({ posts: results.data});
 
-  createPost() {
+})
 
   }
 
   render() {
     const { posts } = this.state;
+    let displayPosts =  
+      posts.map( post => {
+          return <Post 
+          id={post.id}
+          key={ post.id } 
+          text={ post.text }
+          date={ post.date}
+          updatePostFn={this.updatePost}
+          deletePostFn={this.deletePost} />                      
+        })
+      
 
     return (
       <div className="App__parent">
@@ -43,8 +71,8 @@ class App extends Component {
 
         <section className="App__content">
 
-          <Compose />
-          
+          <Compose createPostFn={this.createPost} />
+         {displayPosts}
         </section>
       </div>
     );
